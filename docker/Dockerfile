@@ -1,4 +1,4 @@
-# SegGPT backend Dockerfile (derived from ycpss91255-docker/base).
+# SegGPT backend Dockerfile (derived from ycpss91255-lab/base).
 #
 # Stages:
 #   sys     - User/group, locale, timezone (template default)

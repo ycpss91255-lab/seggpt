@@ -37,7 +37,7 @@ coresam_ws/src/seggpt/data/                       # .gitignore'd
 
 `data/` 整個 `.gitignore`，理由：
 
-1. **Backend repo 通用化**（CLAUDE.md「SegGPT Backend Repo 職責邊界」）：iron_beam / target 都是 CoreSAM 後推式貨架 application 的概念。`ycpss91255-docker/seggpt` 必須能被其他應用 reuse，不能綁死在這個應用。
+1. **Backend repo 通用化**（CLAUDE.md「SegGPT Backend Repo 職責邊界」）：iron_beam / target 都是 CoreSAM 後推式貨架 application 的概念。`ycpss91255-lab/seggpt` 必須能被其他應用 reuse，不能綁死在這個應用。
 2. **資料量**：3548 張 raw 圖會把 git history 灌爆。
 
 容器內可見路徑：`~/work/data/phase_0_test/...`（整個 repo 已透過 `setup.conf` `mount_1` 掛在 `~/work`，driver 預設指向這裡）。

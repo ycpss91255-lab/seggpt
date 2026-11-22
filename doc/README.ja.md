@@ -51,7 +51,7 @@ curl -X POST http://localhost:8888/infer \
 ```
 seggpt/
 ├── docker/                      Docker 環境（base subtree）
-│   ├── .base/                   ycpss91255-docker/base からの git subtree
+│   ├── .base/                   ycpss91255-lab/base からの git subtree
 │   ├── Dockerfile               per-repo Dockerfile
 │   ├── compose.yaml             setup.sh が自動生成（手動編集不可）
 │   ├── config/docker/setup.conf per-repo runtime 設定（.base/config/docker/setup.conf に重ねる）

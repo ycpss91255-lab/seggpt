@@ -51,7 +51,7 @@ curl -X POST http://localhost:8888/infer \
 ```
 seggpt/
 ├── docker/                      Docker 環境（base subtree）
-│   ├── .base/                   來自 ycpss91255-docker/base 的 git subtree
+│   ├── .base/                   來自 ycpss91255-lab/base 的 git subtree
 │   ├── Dockerfile               per-repo Dockerfile
 │   ├── compose.yaml             setup.sh 自動產生（請勿手動編輯）
 │   ├── config/docker/setup.conf per-repo runtime 設定（疊在 .base/config/docker/setup.conf 上）
