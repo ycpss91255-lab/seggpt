@@ -18,7 +18,7 @@ ARG BASE_IMAGE="nvidia/cuda:11.8.0-devel-ubuntu22.04"
 # BuildKit resolves only the stages the selected flavour references).
 ARG JETSON_BASE_IMAGE="dustynv/l4t-pytorch:r36.4.0"
 # amd64 | arm64. Defaults to the build platform's arch, override with
-# --build-arg SEGGPT_FLAVOR=... (setup.conf [build] arg_N) if needed.
+# --build-arg SEGGPT_FLAVOR=... (setup.toml [[build.args]]) if needed.
 ARG TARGETARCH
 ARG SEGGPT_FLAVOR="${TARGETARCH}"
 ARG TEST_TOOLS_IMAGE="test-tools:local"
@@ -320,13 +320,13 @@ RUN cat "${CONFIG_DIR}"/shell/bashrc >> "/home/${USER_NAME}/.bashrc" && \
     sudo rm -rf "${CONFIG_DIR}"
 
 # Build-time editable install of the seggpt package. Pulled from the
-# `repo_root` named context (defined in setup.conf [additional_contexts]
+# `repo_root` named context (defined in setup.toml [[additional_contexts]]
 # as `..`, available since template v0.16.0) — the main build context
 # is `docker/`, which can't see pyproject.toml + src/ at the repo root
 # without this. pip --no-deps because heavy deps already locked above.
 #
-# install path /home/${USER_NAME}/work matches setup.conf's mount_1
-# target, so the editable install's egg-link / .pth pointers stay
+# install path /home/${USER_NAME}/work matches the first [[volumes]]
+# target in setup.toml, so the editable install's egg-link / .pth pointers stay
 # valid after the host bind-mount overlays this directory at run
 # time (host repo has identical layout). Edits on the host reflect
 # in the container without re-installing.
@@ -351,7 +351,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]
 
 ############################## devel-test ##############################
-# Resolves to test-tools:local (local build.sh) or ghcr.io/.../test-tools:vX.Y.Z (CI).
+# Resolves to test-tools:local (local just docker build) or ghcr.io/.../test-tools:vX.Y.Z (CI).
 # hadolint ignore=DL3006
 FROM ${TEST_TOOLS_IMAGE} AS test-tools-stage
 
@@ -368,7 +368,7 @@ COPY --from=test-tools-stage /usr/local/bin/hadolint /usr/local/bin/hadolint
 COPY .hadolint.yaml /lint/.hadolint.yaml
 COPY Dockerfile /lint/Dockerfile
 COPY .base/dist/script/docker/wrapper/*.sh /lint/
-# Helpers sourced by the root-level scripts. Must sit next to them so
+# Helpers sourced by the wrapper scripts. Must sit next to them so
 # build.sh / run.sh / exec.sh / stop.sh / setup.sh can source _lib.sh
 # (which in turn sources i18n.sh); setup.sh also sources _tui_conf.sh.
 # _lib.sh post-#284 is an umbrella that sources lib/*.sh sub-libs.

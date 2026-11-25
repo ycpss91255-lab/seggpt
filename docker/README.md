@@ -5,7 +5,7 @@
 ## Quick Start
 
 ```bash
-./build.sh && ./run.sh
+just docker build && just docker run
 ```
 
 ## Smoke Tests

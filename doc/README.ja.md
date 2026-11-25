@@ -20,8 +20,9 @@ SegGPT visual prompt セグメンテーション backend。target image と 1 �
 
 ```bash
 cd docker
-./build.sh   # devel + test image をビルド
-./run.sh     # コンテナ起動（model + prompts をマウント）
+just docker build        # devel image をビルド
+just docker build test   # lint + smoke test
+just docker run          # コンテナ起動（model + prompts をマウント）
 ```
 
 コンテナ内で Python API:
@@ -54,8 +55,8 @@ seggpt/
 │   ├── .base/                   ycpss91255-lab/base からの git subtree
 │   ├── Dockerfile               per-repo Dockerfile
 │   ├── compose.yaml             setup.sh が自動生成（手動編集不可）
-│   ├── config/docker/setup.conf per-repo runtime 設定（.base/config/docker/setup.conf に重ねる）
-│   └── test/smoke/              docker image smoke tests（bats）
+│   ├── setup.toml               per-repo runtime 設定（.base/dist/setup.toml に重ねる）
+│   └── test/bats/smoke/         docker image smoke tests（bats）
 ├── src/
 │   └── seggpt/                  Python package（`seggpt` として install）
 │       ├── runtime/             Layer 1 kernel（旧 SegGPT model + service から移植）

@@ -11,7 +11,7 @@ Binary weights (`*.pth`) are **not** committed to git (`.gitignore` blocks them)
 
 ## Inside the docker container
 
-The repo root mounts to `/home/<user>/work` (see `docker/compose.yaml`'s `mount_1`). So inside the container:
+The repo root mounts to `/home/<user>/work` (the first `[[volumes]]` in `docker/setup.toml`). So inside the container:
 
 ```
 /home/<user>/work/model/seggpt_vit_large.pth

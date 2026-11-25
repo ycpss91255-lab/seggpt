@@ -40,7 +40,7 @@ coresam_ws/src/seggpt/data/                       # .gitignore'd
 1. **Backend repo 通用化**（CLAUDE.md「SegGPT Backend Repo 職責邊界」）：iron_beam / target 都是 CoreSAM 後推式貨架 application 的概念。`ycpss91255-lab/seggpt` 必須能被其他應用 reuse，不能綁死在這個應用。
 2. **資料量**：3548 張 raw 圖會把 git history 灌爆。
 
-容器內可見路徑：`~/work/data/phase_0_test/...`（整個 repo 已透過 `setup.conf` `mount_1` 掛在 `~/work`，driver 預設指向這裡）。
+容器內可見路徑：`~/work/data/phase_0_test/...`（整個 repo 已透過 `setup.toml` 的第一個 `[[volumes]]` 掛在 `~/work`，driver 預設指向這裡）。
 
 ### 2.2 Prompt pool 切換 — `data/phase_0_test/prompt/`
 
@@ -100,7 +100,7 @@ driver 的 prompt 子集挑選邏輯（`scripts/phase0_driver.py` 內 `_N_SUBSET
 
 ```bash
 cd /home/yunchien/workspace/coreSAM_ws/coresam_ws/src/seggpt/docker
-./run.sh
+just docker run
 ```
 
 容器啟動時 entrypoint 自動跑 `pip install --no-deps -e ~/work`（PR #2 起），不需手動 install。
