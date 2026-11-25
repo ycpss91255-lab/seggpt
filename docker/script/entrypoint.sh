@@ -4,8 +4,8 @@
 #
 # The seggpt package is installed --editable into the image at build
 # time (Dockerfile pulls pyproject.toml + src/ from the `repo_root`
-# named context — see docker/setup.conf [additional_contexts]). The
-# install path matches setup.conf's mount_1 target so the host
+# named context — see docker/setup.toml [[additional_contexts]]). The
+# install path matches the first [[volumes]] target in setup.toml so the host
 # bind-mount overlays the same layout at run time and edits on the
 # host reflect inside the container without re-installing.
 #

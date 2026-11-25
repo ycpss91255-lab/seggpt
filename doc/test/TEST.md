@@ -9,14 +9,14 @@ Single source of truth for all tests in this repository. Update the totals and p
 | Unit (pytest) | 108 | `test/unit/` |
 | Integration (pytest) | 4 | `test/integration/` |
 | Smoke (pytest) | 0 | `test/smoke/` |
-| Smoke (bats, docker image) | 22 | `docker/test/smoke/` |
+| Smoke (bats, docker image) | 22 | `docker/test/bats/smoke/` |
 | **Total** | **134** | |
 
 > Counts are `pytest --collect-only` items on a host without `yacs` / `torch`. Parametrised cases expand each function-def line into multiple test items (e.g. `test_naming.py`'s 5 functions yield 17 items). Inside the docker image two file-level skips lift (`test_tools.py`, `test_abstract_service.py`) and `test_services_utils.py`'s torch group runs, bringing the unit total to ~100.
 
 ## Smoke (bats, docker image)
 
-Located at `docker/test/smoke/seggpt_env.bats`. Exercises the `devel` image built from `docker/Dockerfile` via the template `test` stage.
+Located at `docker/test/bats/smoke/shared/seggpt_env.bats`. Exercises the `devel` image built from `docker/Dockerfile` via the `devel-test` stage (`just docker build test`).
 
 | # | Test name | Asserts |
 |---|---|---|

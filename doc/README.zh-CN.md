@@ -20,8 +20,9 @@ SegGPT visual prompt 分割 backend。给定一张 target image 与一组以上�
 
 ```bash
 cd docker
-./build.sh   # 构建 devel + test image
-./run.sh     # 启动容器（挂载 model + prompts）
+just docker build        # 构建 devel image
+just docker build test   # lint + smoke test
+just docker run          # 启动容器（挂载 model + prompts）
 ```
 
 容器内走 Python API：
@@ -51,11 +52,11 @@ curl -X POST http://localhost:8888/infer \
 ```
 seggpt/
 ├── docker/                      Docker 环境（base subtree）
-│   ├── .base/                   来自 ycpss91255-docker/base 的 git subtree
+│   ├── .base/                   来自 ycpss91255-lab/base 的 git subtree
 │   ├── Dockerfile               per-repo Dockerfile
 │   ├── compose.yaml             setup.sh 自动生成（请勿手动编辑）
-│   ├── config/docker/setup.conf per-repo runtime 配置（叠在 .base/config/docker/setup.conf 上）
-│   └── test/smoke/              docker image smoke tests（bats）
+│   ├── setup.toml               per-repo runtime 配置（叠在 .base/dist/setup.toml 上）
+│   └── test/bats/smoke/         docker image smoke tests（bats）
 ├── src/
 │   └── seggpt/                  Python package（安装为 `seggpt`）
 │       ├── runtime/             Layer 1 kernel（移植自旧 SegGPT model + service）

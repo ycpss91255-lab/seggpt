@@ -5,8 +5,8 @@ BuildKit's `TARGETARCH`, so on a Jetson the normal flow just works:
 
 ```bash
 cd docker
-./build.sh    # arm64 → devel-base-arm64 (dustynv/l4t-pytorch:r36.4.0)
-./run.sh      # setup.sh detects /etc/nv_tegra_release → runtime: nvidia
+just docker build  # arm64 → devel-base-arm64 (dustynv/l4t-pytorch:r36.4.0)
+just docker run    # setup.sh detects /etc/nv_tegra_release → runtime: nvidia
 ```
 
 | flavour | base | python / torch | selected when |
@@ -14,10 +14,13 @@ cd docker
 | `amd64` (unchanged) | `nvidia/cuda:11.8.0-devel-ubuntu22.04` | conda 3.11 / torch 2.0.1 cu118 | `TARGETARCH=amd64` (CI, x86 hosts) |
 | `arm64` | `dustynv/l4t-pytorch:r36.4.0` | system 3.10 / torch 2.4.0 cu126 | `TARGETARCH=arm64` (Jetson) |
 
-Override with `--build-arg SEGGPT_FLAVOR=amd64|arm64` (`setup.conf`
-`[build] arg_N = SEGGPT_FLAVOR=...`) if you ever need to force one.
-The `test` stage (bats in `docker/test/smoke/`) asserts the amd64 conda
-layout and is not built on Jetson (`./build.sh` builds `devel` only).
+Override with a `[[build.args]]` entry (`key = "SEGGPT_FLAVOR"`, `value =
+"amd64"` or `"arm64"`) in `docker/setup.local.toml` if you ever need to force
+one; the list replaces the template's, so repeat its three entries
+(`APT_MIRROR_UBUNTU`, `APT_MIRROR_DEBIAN`, `TZ`). `just docker build` does not
+take `--build-arg`.
+The `test` stage (bats in `docker/test/bats/smoke/`) asserts the amd64 conda
+layout and is not built on Jetson (`just docker build` builds `devel` only).
 
 ## What differs on arm64
 
@@ -42,25 +45,38 @@ layout and is not built on Jetson (`./build.sh` builds `devel` only).
 
 ## Model + data mounts
 
-The committed `setup.conf` mounts only the repo (`mount_1`) and points the
-`SEGGPT_*` env at `/workspace/...` — those paths are not created by this
-repo; provide them per deployment with a local (uncommitted) edit of
-`docker/config/docker/setup.conf`, keeping the mounts narrow and read-only
-where possible:
+The committed `docker/setup.toml` mounts only the repo (the first
+`[[volumes]]`) and points the `SEGGPT_*` env at `/workspace/...` — those
+paths are not created by this repo; provide them per deployment in
+`docker/setup.local.toml` (gitignored), keeping the mounts narrow and
+read-only where possible:
 
-```ini
-[volumes]
-mount_1 = ${WS_PATH}/src/seggpt:/home/${USER_NAME}/work
-mount_2 = ${WS_PATH}/model:/workspace/model:ro
-mount_3 = ${WS_PATH}/data/examples:/workspace/prompts:ro
-mount_4 = ${WS_PATH}/results:/workspace/results
+```toml
+[[volumes]]
+source = "${WS_PATH}/src/seggpt"
+target = "/home/${USER_NAME}/work"
+
+[[volumes]]
+source = "${WS_PATH}/model"
+target = "/workspace/model"
+mode = "ro"
+
+[[volumes]]
+source = "${WS_PATH}/data/examples"
+target = "/workspace/prompts"
+mode = "ro"
+
+[[volumes]]
+source = "${WS_PATH}/results"
+target = "/workspace/results"
 ```
 
-`setup.conf` sections replace the template's whole section, so repeat
-`mount_1` when adding mounts. `./run.sh` regenerates `compose.yaml`.
+`[[volumes]]` in `setup.local.toml` replaces the whole list from
+`setup.toml`, so repeat the workspace mount when adding mounts. The next
+`just docker run` regenerates `compose.yaml`.
 
-Add `env_6 = SEGGPT_PRECISION=tf32` to `[environment]` on Jetson: the
-ViT-L forward is GPU-bound and PyTorch leaves TF32 matmul off by default,
+On Jetson add `SEGGPT_PRECISION=tf32` to `docker/.env.local` (gitignored):
+the ViT-L forward is GPU-bound and PyTorch leaves TF32 matmul off by default,
 so this alone is 1.75× with no measurable accuracy change (#14).
 
 ## Verified (2026-09-17)

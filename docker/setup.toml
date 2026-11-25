@@ -1,0 +1,58 @@
+[[image.rules]]
+rule = "string:seggpt"
+
+# base v0.28 applied these when a section was absent; from v0.43 the
+# template default is unprivileged with no device binding, so they are
+# stated here to keep the container's runtime behaviour.
+[security]
+privileged = true
+
+[[security.cap_add]]
+cap = "SYS_ADMIN"
+
+[[security.cap_add]]
+cap = "NET_ADMIN"
+
+[[security.cap_add]]
+cap = "MKNOD"
+
+[[security.security_opt]]
+opt = "seccomp:unconfined"
+
+[devices]
+cgroup_rules = []
+
+[[devices.bindings]]
+path = "/dev:/dev"
+
+[deploy]
+# v0.28 never granted the host's /dev/dri groups.
+dri_groups = "off"
+
+[lifecycle]
+# v0.28 emitted no restart policy; the template default is unless-stopped.
+restart = "no"
+
+# The first mount is the workspace: anchored at WS_PATH/src/seggpt so the
+# repo itself is /home/${USER_NAME}/work. WS_PATH is auto-detected per
+# machine; the suffix holds as long as the repo lives under
+# <workspace>/src/seggpt/.
+[[volumes]]
+source = "${WS_PATH}/src/seggpt"
+target = "/home/${USER_NAME}/work"
+
+[environment]
+env_1 = "SEGGPT_BACKEND_NAME=seggpt_vit_l"
+env_2 = "SEGGPT_REFERENCE_MODE=named"
+env_3 = "SEGGPT_PROMPTS_DIR=/workspace/prompts"
+env_4 = "SEGGPT_MODEL_PATH=/workspace/model/seggpt_vit_large.pth"
+env_5 = "SEGGPT_API_PORT=8888"
+# SEGGPT_PRECISION (#14): fp32 (default) | tf32. Recommended on Jetson; see
+# doc/jetson.md.
+
+# `..` resolves relative to compose.yaml (= docker/), i.e. the repo root, so
+# the Dockerfile can `COPY --from=repo_root`. CI mirrors this in
+# .github/workflows/main.yaml (build_contexts).
+[[additional_contexts]]
+name = "repo_root"
+source = ".."

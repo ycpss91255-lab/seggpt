@@ -140,13 +140,13 @@ python scripts/phase0.py
 
 ```bash
 # 1. 確認 CI 綠（image 已驗證）
-gh pr checks 1 --repo ycpss91255-docker/seggpt
+gh pr checks 1 --repo ycpss91255-lab/seggpt
 
 # 2. 本機 build image（首次 ~25 min；之後 cache hit 秒級）
-cd docker && ./build.sh
+cd docker && just docker build
 
 # 3. 啟動 container
-./run.sh
+just docker run
 ```
 
 ### 5.2 Smoke（必跑，鎖死回歸）

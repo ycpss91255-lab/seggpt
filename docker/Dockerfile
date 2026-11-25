@@ -1,4 +1,4 @@
-# SegGPT backend Dockerfile (derived from ycpss91255-docker/base).
+# SegGPT backend Dockerfile (derived from ycpss91255-lab/base).
 #
 # Stages:
 #   sys     - User/group, locale, timezone (template default)
@@ -18,14 +18,17 @@ ARG BASE_IMAGE="nvidia/cuda:11.8.0-devel-ubuntu22.04"
 # BuildKit resolves only the stages the selected flavour references).
 ARG JETSON_BASE_IMAGE="dustynv/l4t-pytorch:r36.4.0"
 # amd64 | arm64. Defaults to the build platform's arch, override with
-# --build-arg SEGGPT_FLAVOR=... (setup.conf [build] arg_N) if needed.
+# --build-arg SEGGPT_FLAVOR=... (setup.toml [[build.args]]) if needed.
 ARG TARGETARCH
 ARG SEGGPT_FLAVOR="${TARGETARCH}"
 ARG TEST_TOOLS_IMAGE="test-tools:local"
 
 ############################## sys ##############################
+# hadolint ignore=DL3006
 FROM ${BASE_IMAGE} AS sys-amd64
+# hadolint ignore=DL3006
 FROM ${JETSON_BASE_IMAGE} AS sys-arm64
+# hadolint ignore=DL3006
 FROM sys-${SEGGPT_FLAVOR} AS sys
 
 # CI's build-worker.yaml passes USER/GROUP/UID/GID, while compose.yaml
@@ -72,7 +75,7 @@ RUN if getent group "${USER_GID}" >/dev/null; then \
         usermod -l "${USER_NAME}" -d "/home/${USER_NAME}" -m \
             "$(getent passwd "${USER_UID}" | cut -d: -f1)"; \
     else \
-        useradd -m -s /bin/bash -u "${USER_UID}" -g "${USER_GID}" "${USER_NAME}"; \
+        useradd -l -m -s /bin/bash -u "${USER_UID}" -g "${USER_GID}" "${USER_NAME}"; \
     fi && \
     echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
@@ -269,6 +272,7 @@ RUN PIP_USER=0 pip3 install --no-cache-dir \
     python3 -c "import torch, detectron2; from detectron2 import _C; from detectron2.layers import Conv2d, get_norm, CNNBlockBase; print(torch.__version__, detectron2.__version__)"
 
 ############################## devel-base (selected flavour) ##############################
+# hadolint ignore=DL3006
 FROM devel-base-${SEGGPT_FLAVOR} AS devel-base
 
 ############################## devel ##############################
@@ -316,13 +320,13 @@ RUN cat "${CONFIG_DIR}"/shell/bashrc >> "/home/${USER_NAME}/.bashrc" && \
     sudo rm -rf "${CONFIG_DIR}"
 
 # Build-time editable install of the seggpt package. Pulled from the
-# `repo_root` named context (defined in setup.conf [additional_contexts]
+# `repo_root` named context (defined in setup.toml [[additional_contexts]]
 # as `..`, available since template v0.16.0) — the main build context
 # is `docker/`, which can't see pyproject.toml + src/ at the repo root
 # without this. pip --no-deps because heavy deps already locked above.
 #
-# install path /home/${USER_NAME}/work matches setup.conf's mount_1
-# target, so the editable install's egg-link / .pth pointers stay
+# install path /home/${USER_NAME}/work matches the first [[volumes]]
+# target in setup.toml, so the editable install's egg-link / .pth pointers stay
 # valid after the host bind-mount overlays this directory at run
 # time (host repo has identical layout). Edits on the host reflect
 # in the container without re-installing.
@@ -347,11 +351,13 @@ ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]
 
 ############################## devel-test ##############################
-# Resolves to test-tools:local (local build.sh) or ghcr.io/.../test-tools:vX.Y.Z (CI).
+# Resolves to test-tools:local (local just docker build) or ghcr.io/.../test-tools:vX.Y.Z (CI).
+# hadolint ignore=DL3006
 FROM ${TEST_TOOLS_IMAGE} AS test-tools-stage
 
 FROM devel AS devel-test
 
+# hadolint ignore=DL3066
 USER root
 
 # Lint tools (from pre-built test-tools image; see TEST_TOOLS_IMAGE at top)
@@ -361,19 +367,16 @@ COPY --from=test-tools-stage /usr/local/bin/hadolint /usr/local/bin/hadolint
 # Lint: ShellCheck (.sh) + Hadolint (Dockerfile)
 COPY .hadolint.yaml /lint/.hadolint.yaml
 COPY Dockerfile /lint/Dockerfile
-COPY *.sh /lint/
-# Helpers sourced by the root-level scripts. Must sit next to them so
+COPY .base/dist/script/docker/wrapper/*.sh /lint/
+# Helpers sourced by the wrapper scripts. Must sit next to them so
 # build.sh / run.sh / exec.sh / stop.sh / setup.sh can source _lib.sh
 # (which in turn sources i18n.sh); setup.sh also sources _tui_conf.sh.
-COPY .base/script/docker/_lib.sh \
-     .base/script/docker/i18n.sh \
-     .base/script/docker/_tui_conf.sh \
-     /lint/
 # _lib.sh post-#284 is an umbrella that sources lib/*.sh sub-libs.
 # Preserve the lib/ subdirectory in /lint/ so the source paths inside
 # _lib.sh resolve identically to the normal .base/ layout.
-COPY .base/script/docker/lib /lint/lib
+COPY .base/dist/script/docker/lib /lint/lib
 RUN shellcheck -S warning /lint/*.sh /lint/lib/*.sh
+# hadolint ignore=DL3003
 RUN cd /lint && hadolint Dockerfile
 
 # Bats (from pre-built test-tools image; see TEST_TOOLS_IMAGE at top)
@@ -384,8 +387,10 @@ RUN ln -sf /opt/bats/bin/bats /usr/local/bin/bats
 ENV BATS_LIB_PATH="/usr/lib/bats"
 
 # Smoke test (shared from .base + repo-specific)
-COPY .base/test/smoke/ /smoke_test/
-COPY test/smoke/ /smoke_test/
+COPY .base/dist/test/bats/smoke/shared/ /smoke_test/
+COPY .base/dist/test/bats/smoke/devel-test/ /smoke_test/
+COPY test/bats/smoke/shared/ /smoke_test/
+COPY test/bats/smoke/devel-test/ /smoke_test/
 
 ARG USER="user"
 ARG USER_NAME="${USER}"

@@ -12,13 +12,13 @@
 
 ```bash
 cd /home/yunchien/workspace/coreSAM_ws/coresam_ws/src/seggpt/docker
-./build.sh
+just docker build
 ```
 
 Build 完想再驗一次：
 
 ```bash
-./build.sh --check        # 快速重驗，hits cache
+just docker build test    # lint + smoke test，hits cache
 docker images | grep seggpt
 ```
 
@@ -37,7 +37,7 @@ ls -la /home/yunchien/workspace/coreSAM_ws/coresam_ws/src/seggpt/model/seggpt_vi
 
 ```bash
 cd /home/yunchien/workspace/coreSAM_ws/coresam_ws/src/seggpt/docker
-./run.sh
+just docker run
 ```
 
 會把你丟進 `/home/<user>/work` 的 bash shell — 這個路徑就是 host 上 repo 根目錄 RW 掛進來的。1.48 GB checkpoint 容器內可見於 `/home/<user>/work/model/seggpt_vit_large.pth`。
