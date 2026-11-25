@@ -1,0 +1,18 @@
+[[image.rules]]
+rule = "string:seggpt"
+
+[[volumes]]
+source = "${WS_PATH}/src/seggpt"
+target = "/home/${USER_NAME}/work"
+
+[environment]
+env_1 = "SEGGPT_BACKEND_NAME=seggpt_vit_l"
+env_2 = "SEGGPT_REFERENCE_MODE=named"
+env_3 = "SEGGPT_PROMPTS_DIR=/workspace/prompts"
+env_4 = "SEGGPT_MODEL_PATH=/workspace/model/seggpt_vit_large.pth"
+env_5 = "SEGGPT_API_PORT=8888"
+
+[[additional_contexts]]
+name = "repo_root"
+source = ".."
+
