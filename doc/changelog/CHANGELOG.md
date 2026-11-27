@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **docker subtree**：`docker/.base/` v0.43.0-rc7 -> v0.43.0-rc9，`.github/workflows/main.yaml` 的 base workflow 參照一併改為 rc9。base 的同步流程在 `docker/` 新增一份換行規則 `docker/.gitattributes`（內容與根目錄的區塊相同）。
 - **docker subtree**：`docker/.base/` v0.28.0 -> v0.43.0-rc7（上游改名為 `ycpss91255-lab/base`）。入口改為 `cd docker && just docker <build|run|exec|stop|setup>`，移除 `docker/{build,run,exec,stop,setup,setup_tui}.sh` 與 `docker/Makefile`；設定檔由 `docker/config/docker/setup.conf` 改為 `docker/setup.toml`（單機覆寫用不進 git 的 `docker/setup.local.toml`）；bats smoke 移到 `docker/test/bats/smoke/`。
 - **docker 設定**：`docker/setup.toml` 明確寫出原本由 v0.28 範本補上的 `privileged`、`cap_add`（SYS_ADMIN／NET_ADMIN／MKNOD）、`seccomp:unconfined`、`/dev:/dev`，並設 `restart = "no"` 與 `dri_groups = "off"`；新版範本預設改變，不寫會使容器行為與升級前不同。
 - **GitHub org 改名為 `ycpss91255-lab`**：更新 `.github/workflows/main.yaml` 的 reusable workflow 參照、文件與 Dockerfile 註解中的舊 org 名稱（`docker/.base/` subtree 不手動修改，待 base 發布後以 subtree pull 升級）。
