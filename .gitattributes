@@ -32,6 +32,3 @@
 *.xz binary
 *.zip binary
 # managed by template: line endings end (do not remove)
-
-# Binary files specific to this repo.
-*.mod binary
