@@ -6,6 +6,8 @@ on:
     tags:
       - 'v*'
   pull_request:
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
 
 # call-release uses softprops/action-gh-release@v2 which needs
@@ -45,3 +47,23 @@ jobs:
     uses: ycpss91255-lab/base/.github/workflows/release-worker.yaml@v0.43.0-rc9
     with:
       archive_name_prefix: seggpt
+
+  ci-rollup:
+    # merge queue 唯一的必要 check：needs 的 job 必須全部 success。
+    name: ci-rollup
+    if: always()
+    needs: [call-docker-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 確認全部 job 成功
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          bad="$(echo "$NEEDS" | jq -r '[to_entries[] | select(.value.result != "success") | .key] | join(", ")')"
+          if [ -n "$bad" ]; then
+            echo "::error::未成功的 job：$bad"
+            exit 1
+          fi
